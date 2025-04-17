@@ -1,0 +1,69 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brightspace YouTube Links Scraper</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Brightspace YouTube Links Scraper</h1>
+    <!-- Form for login and URL input with two scraping options -->
+    <div class="card">
+      <h2>1. Brightspace Login & Input</h2>
+      <p>Enter your Brightspace credentials and the URL for scraping:</p>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" placeholder="Brightspace Email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <div class="password-container">
+          <input type="password" id="password" placeholder="Brightspace Password" />
+          <span id="togglePassword" class="toggle-password">👁️</span>
+        </div>
+      </div>      
+      <div class="form-group">
+        <label for="url">Course/Module or Content URL:</label>
+        <input type="url" id="url" placeholder="https://your.brightspace.domain/..." />
+      </div>
+      <div class="button-group">
+        <button id="scrapeModuleBtn">Scrape Entire Module</button>
+        <button id="scrapeContentBtn">Scrape Single Content Page</button>
+      </div>
+      <span class="tooltip">❔
+        <span class="tooltiptext">
+          Use "Scrape Entire Module" to traverse all content pages in a module.<br>
+          Use "Scrape Single Content Page" for one specific content page.
+        </span>
+      </span>
+      <div id="scrapeStatus" class="status"></div>
+    </div>
+
+    <!-- Section to display video links and options for processing -->
+    <div class="card" id="linksSection" style="display:none;">
+      <h2>2. Select Videos to Transcribe</h2>
+      <p>Check the videos you want to transcribe & summarize:</p>
+      <div id="linksList"></div>
+      <button id="processBtn">Transcribe & Summarize Selected</button>
+      <span class="tooltip">❔
+        <span class="tooltiptext">
+          Fetches transcripts (using YouTube captions or AI) and summarizes with GPT-4.
+        </span>
+      </span>
+      <div id="processStatus" class="status"></div>
+      <p><button id="downloadLinksBtn">Download All Links</button></p>
+    </div>
+
+    <!-- Section to display results -->
+    <div class="card" id="resultsSection" style="display:none;">
+      <h2>3. Results</h2>
+      <div id="resultsList"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
