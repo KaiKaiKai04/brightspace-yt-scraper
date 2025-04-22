@@ -70,9 +70,10 @@ router.post('/process', async (req, res) => {
     }
     return res.json({ success: true, results });
   } catch (err) {
-    console.error('Processing error:', err);
-    return res.status(500).json({ error: 'Failed to process videos' });
+    console.error('❌ Processing error:', err);
+    return res.status(500).json({ error: err.message || 'Failed to process videos' });
   }
+  
 });
 
 /**
