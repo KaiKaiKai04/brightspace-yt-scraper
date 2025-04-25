@@ -1,10 +1,11 @@
+// utils/brightspaceScraper.js
 const playwright = require('playwright');
+const fs = require('fs');
+const path = require('path');
+const { Document, Packer, Paragraph, TextRun } = require('docx');
+const express = require('express');
+const router = express.Router();
 
-/**
- * Normalizes various YouTube URL formats to the standard watch URL.
- * @param {string} url - The original YouTube URL.
- * @returns {string} - Normalized YouTube URL.
- */
 function normalizeYouTubeUrl(url) {
   try {
     const parsed = new URL(url);
@@ -21,271 +22,165 @@ function normalizeYouTubeUrl(url) {
   }
 }
 
-/**
- * Scrapes YouTube links from the page content using a regex.
- * @param {object} pageOrFrame - A Playwright page or frame instance.
- * @param {Set} videoLinks - Set to collect unique YouTube links.
- */
 async function scrapeYouTubeLinksOnPage(pageOrFrame, videoLinks) {
-  const html = await pageOrFrame.content();
-  const ytRegex = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)[^"'\s]+/g;
-  const matches = html.match(ytRegex) || [];
-  matches.forEach(link => {
-    const clean = normalizeYouTubeUrl(link);
-    videoLinks.add(clean);
-    console.log(`📺 Found YouTube link via regex: ${clean}`);
-  });
-}
+  const anchors = await pageOrFrame.$$('a[href*="youtube.com"], a[href*="youtu.be"]');
+  for (const a of anchors) {
+    const href = await a.getAttribute('href');
+    if (href) videoLinks.add(normalizeYouTubeUrl(href));
+  }
 
-/**
- * Expands Articulate Rise lessons and scrapes for YouTube links.
- * This function waits for dynamic content, clicks on collapsed sections,
- * looks for standard YouTube links as well as “Watch on YouTube” anchors,
- * and inspects nested iframes.
- *
- * @param {object} frame - The Playwright frame (or page) that contains Rise content.
- * @param {Set} videoLinks - Set to collect unique YouTube links.
- */
-async function expandAndScrapeRiseContent(frame, videoLinks) {
-  try {
-    // Wait for the Rise content to load
-    await frame.waitForTimeout(2000);
-
-    // 1. Expand any collapsed sections (using common selectors)
-    const expandables = await frame.$$('[aria-expanded="false"], .section-header');
-    console.log(`🔍 Found ${expandables.length} collapsed sections in Rise content.`);
-    for (const [i, el] of expandables.entries()) {
-      try {
-        const title = await el.innerText();
-        console.log(`📖 Expanding section: ${title || `Section ${i + 1}`}`);
-        await el.click();
-        // Wait after clicking to allow content to load
-        await frame.waitForTimeout(1000);
-      } catch (err) {
-        console.warn(`⚠️ Could not expand section ${i + 1}:`, err.message);
-      }
-    }
-    
-    // Give extra time after all expansions for dynamic content to appear
-    await frame.waitForTimeout(2000);
-
-    // 2. Scrape YouTube links from the current DOM via regex
-    await scrapeYouTubeLinksOnPage(frame, videoLinks);
-
-    // 3. Look specifically for anchors that say "Watch on YouTube"
-    const anchors = await frame.$$('a');
-    for (const a of anchors) {
-      try {
-        const text = (await a.innerText()).trim();
-        const href = await a.getAttribute('href');
-        if (text.includes('YouTube') && href && href.includes('youtube.com')) {
-          const clean = normalizeYouTubeUrl(href);
-          videoLinks.add(clean);
-          console.log(`📺 Found "Watch on YouTube" link: ${clean}`);
-        }
-      } catch (err) {
-        // Skip any errors from individual anchors
-        continue;
-      }
-    }
-
-    // 4. Check for nested iframes within the Rise content and scrape them too
-    const subIframes = await frame.$$('iframe');
-    for (const sub of subIframes) {
-      const subFrame = await sub.contentFrame();
-      if (subFrame) {
-        console.log('🌐 Found nested iframe in Rise content, waiting for it to load...');
-        await subFrame.waitForTimeout(2000);
-        // Scrape using regex on the subframe's content
-        await scrapeYouTubeLinksOnPage(subFrame, videoLinks);
-        // And check for "Watch on YouTube" anchors inside the subframe
-        const subAnchors = await subFrame.$$('a');
-        for (const subA of subAnchors) {
-          try {
-            const subText = (await subA.innerText()).trim();
-            const subHref = await subA.getAttribute('href');
-            if (subText.includes('YouTube') && subHref && subHref.includes('youtube.com')) {
-              const clean = normalizeYouTubeUrl(subHref);
-              videoLinks.add(clean);
-              console.log(`📺 Found "Watch on YouTube" link in nested iframe: ${clean}`);
-            }
-          } catch (err) {
-            continue;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error('❌ Error in expandAndScrapeRiseContent:', err.message);
+  const iframes = await pageOrFrame.$$('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+  for (const f of iframes) {
+    const src = await f.getAttribute('src');
+    if (src) videoLinks.add(normalizeYouTubeUrl(src));
   }
 }
 
-/**
- * Logs into Brightspace using Microsoft authentication.
- * Navigates to the provided URL and handles potential login popups.
- *
- * @param {object} page - Playwright page instance.
- * @param {string} email - Brightspace email.
- * @param {string} password - Brightspace password.
- * @param {string} url - The Brightspace (or Rise) URL.
- */
+async function clickStartOrReviewCourse(page) {
+  try {
+    const buttons = await page.$$('text=Start Course, text=Review Content');
+    for (const btn of buttons) {
+      if (await btn.isVisible()) {
+        await btn.scrollIntoViewIfNeeded();
+        await btn.click();
+        console.log('▶️ Clicked Start/Review Course');
+        await page.waitForTimeout(2000);
+        return;
+      }
+    }
+  } catch (err) {
+    console.log('ℹ️ No Start or Review button found');
+  }
+}
+
+async function expandCollapsedSections(page) {
+  const expandable = await page.$$('[aria-expanded="false"], .section-header');
+  for (const el of expandable) {
+    try {
+      await el.scrollIntoViewIfNeeded();
+      await el.click();
+      await page.waitForTimeout(500);
+    } catch {}
+  }
+}
+
+async function scrollToBottom(page) {
+  let prevHeight = 0;
+  let height = await page.evaluate(() => document.body.scrollHeight);
+  while (height > prevHeight) {
+    prevHeight = height;
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(1000);
+    height = await page.evaluate(() => document.body.scrollHeight);
+  }
+}
+
+async function saveLinksAsDocx(links) {
+  const doc = new Document({
+    sections: [
+      {
+        children: links.map(link => new Paragraph(new TextRun(link))),
+      },
+    ],
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+  const outputPath = path.join(__dirname, '../output/youtube_links.docx');
+  fs.writeFileSync(outputPath, buffer);
+  console.log(`📄 DOCX saved to: ${outputPath}`);
+}
+
 async function loginToBrightspace(page, email, password, url) {
   console.log('🔐 Logging into Brightspace...');
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-  // Handle redirection to Microsoft login if present
-  if (page.url().includes('login.microsoftonline.com')) {
-    await page.fill('input#i0116', email);
-    await page.click('button[type="submit"]');
-    await page.waitForTimeout(1000);
-    await page.fill('input[name="passwd"]', password);
-    await page.click('button[type="submit"]');
-    try { await page.click('input#idBtn_Back'); } catch (e) {}
-    await page.waitForLoadState('networkidle');
-  }
-
-  // If a Microsoft login button is available, click it
-  const msBtn = await page.$('button:has-text("Microsoft")');
-  if (msBtn) {
-    await msBtn.click();
-    const [popup] = await Promise.race([
-      page.context().waitForEvent('page'),
-      page.waitForNavigation()
+  try {
+    await page.waitForSelector('#otherTile', { timeout: 3000 });
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+      page.locator('#otherTile').click()
     ]);
-    const loginPage = popup || page;
-    await loginPage.fill('input#i0116', email);
-    await loginPage.click('button[type="submit"]');
-    await loginPage.waitForTimeout(1000);
-    await loginPage.fill('input[name="passwd"]', password);
-    await loginPage.click('button[type="submit"]');
-    try { await loginPage.click('input#idBtn_Back'); } catch (e) {}
-    await page.waitForLoadState('networkidle');
+    console.log("🟡 Clicked 'Use another account'");
+  } catch {
+    console.log("ℹ️ '#otherTile' not found or auto-redirected. Continuing...");
   }
 
-  // Click on common Brightspace buttons if present
-  const start = await page.$('button:has-text("START COURSE")');
-  if (start) {
-    await start.click();
-    await page.waitForLoadState('networkidle');
+  await page.waitForSelector('input[type="email"], input#i0116', { timeout: 15000 });
+  await page.fill('input[type="email"], input#i0116', email);
+  console.log('📧 Email entered');
+
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    page.locator('input[value="Next"], button[type="submit"], #idSIButton9').click()
+  ]);
+  console.log('➡️ Clicked Next');
+
+  await page.waitForSelector('#i0118', { timeout: 15000 });
+  const passwordInput = page.locator('#i0118');
+  await passwordInput.click({ timeout: 5000 });
+  await passwordInput.type(password, { delay: 100 });
+  await page.waitForTimeout(300);
+
+  const enteredPassword = await passwordInput.inputValue();
+  if (!enteredPassword || enteredPassword.trim().length === 0) {
+    throw new Error('❌ Password field still empty after typing. Aborting login.');
   }
-  const review = await page.$('button:has-text("REVIEW CONTENT")');
-  if (review) {
-    await review.click();
-    await page.waitForLoadState('networkidle');
+  console.log('🔑 Password typed');
+
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }),
+    page.locator('input[type="submit"], #idSIButton9').click()
+  ]);
+  console.log('🔓 Clicked Sign In');
+
+  try {
+    await page.waitForSelector('d2l-navigation', { timeout: 15000 });
+    console.log('✅ Brightspace navigation loaded');
+  } catch {
+    console.log('⏳ No navigation element found, waiting briefly...');
+    await page.waitForTimeout(5000);
   }
+
+  try {
+    await page.click('#idBtn_Back', { timeout: 5000 });
+    console.log('🙅 Skipped stay signed in');
+  } catch {
+    console.log('✅ No stay signed in prompt');
+  }
+
+  await page.waitForLoadState('networkidle');
+  console.log('✅ Successfully logged into Brightspace');
 }
 
-/**
- * Scrapes all YouTube links from an entire Brightspace module.
- * It logs in, iterates through content pages using the "Next" button,
- * expands any Rise content within iframes, and collects YouTube links.
- *
- * @param {string} email - Brightspace email.
- * @param {string} password - Brightspace password.
- * @param {string} moduleUrl - URL of the Brightspace module.
- * @returns {Array} - Array of unique YouTube links.
- */
-async function scrapeEntireModule(email, password, moduleUrl) {
-  const browser = await playwright.chromium.launch({
-    headless: true, // headful for debugging if needed; headless in prod
-    args: ['--no-sandbox']
-  });
+async function scrapeMultipleLinks(email, password, links) {
+  const browser = await playwright.chromium.launch({ headless: false, args: ['--no-sandbox'] });
   const context = await browser.newContext();
   const page = await context.newPage();
   const videoLinks = new Set();
+  let status = 'success';
 
   try {
-    // Log in and navigate to the module page
-    await loginToBrightspace(page, email, password, moduleUrl);
-
-    // If the URL is a direct Rise URL, handle it accordingly
-    if (moduleUrl.includes('rise.articulate.com/share')) {
-      console.log(`📘 Accessing Rise Articulate directly: ${moduleUrl}`);
-      await page.goto(moduleUrl, { waitUntil: 'domcontentloaded' });
-      await expandAndScrapeRiseContent(page, videoLinks);
-    } else {
-      // Loop through all content pages using the "Next" button
-      while (true) {
-        await scrapeYouTubeLinksOnPage(page, videoLinks);
-
-        // Check for embedded Rise iframes and process them
-        const iframes = await page.$$('iframe');
-        for (const iframe of iframes) {
-          const src = await iframe.getAttribute('src');
-          if (src && src.includes('rise.articulate.com')) {
-            const frame = await iframe.contentFrame();
-            if (frame) {
-              console.log(`🌐 Found embedded Rise iframe: ${src}`);
-              await expandAndScrapeRiseContent(frame, videoLinks);
-            }
-          }
-        }
-
-        // Try to find and click the "Next" button to move to the next content page
-        const next = await page.$('button:has-text("Next")');
-        if (next) {
-          await page.evaluate(() => window.scrollBy(0, document.body.scrollHeight));
-          await next.click();
-          await page.waitForLoadState('networkidle');
-        } else {
-          break; // No more pages
-        }
-      }
-    }
-  } catch (err) {
-    console.error('❌ Error scraping module:', err.message);
-  } finally {
-    await browser.close();
-  }
-  return Array.from(videoLinks);
-}
-
-/**
- * Scrapes YouTube links from a single Brightspace content page.
- *
- * @param {string} email - Brightspace email.
- * @param {string} password - Brightspace password.
- * @param {string} contentUrl - URL of the single content page.
- * @returns {Array} - Array of unique YouTube links.
- */
-async function scrapeSingleContent(email, password, contentUrl) {
-  const browser = await playwright.chromium.launch({
-    headless: true,
-    args: ['--no-sandbox']
-  });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  const videoLinks = new Set();
-
-  try {
-    // Log in and navigate to the content page
-    await loginToBrightspace(page, email, password, contentUrl);
-
-    if (contentUrl.includes('rise.articulate.com/share')) {
-      console.log(`📘 Accessing Rise Articulate directly: ${contentUrl}`);
-      await page.goto(contentUrl, { waitUntil: 'domcontentloaded' });
-      await expandAndScrapeRiseContent(page, videoLinks);
-    } else {
-      // Process the page normally
+    for (const link of links) {
+      console.log(`\n🔗 Processing: ${link}`);
+      await loginToBrightspace(page, email, password, link);
+      await clickStartOrReviewCourse(page);
+      await expandCollapsedSections(page);
+      await scrollToBottom(page);
       await scrapeYouTubeLinksOnPage(page, videoLinks);
-      const iframes = await page.$$('iframe');
-      for (const iframe of iframes) {
-        const src = await iframe.getAttribute('src');
-        if (src && src.includes('rise.articulate.com')) {
-          const frame = await iframe.contentFrame();
-          if (frame) {
-            console.log(`🌐 Found embedded Rise iframe: ${src}`);
-            await expandAndScrapeRiseContent(frame, videoLinks);
-          }
-        }
-      }
     }
   } catch (err) {
-    console.error('❌ Error scraping content page:', err.message);
+    status = 'failed';
+    console.error('❌ Error during multi-link scraping:', err);
   } finally {
     await browser.close();
   }
-  return Array.from(videoLinks);
+
+  const textPath = path.join(__dirname, '../output/youtube_links.txt');
+  fs.writeFileSync(textPath, Array.from(videoLinks).join('\n'));
+  console.log(`📁 TXT saved to: ${textPath}`);
+
+  await saveLinksAsDocx(Array.from(videoLinks));
+  return { links: Array.from(videoLinks), status };
 }
 
-module.exports = { scrapeEntireModule, scrapeSingleContent };
+module.exports = { scrapeMultipleLinks };

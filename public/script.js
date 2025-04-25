@@ -1,127 +1,57 @@
 // public/script.js
 
+document.getElementById("scrapeContentBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const urlInput = document.getElementById("url").value.trim();
+  const urls = urlInput.split(/\s+/).filter(Boolean);
+
+  if (!email || !password || urls.length === 0) {
+    alert("Please fill in email, password, and at least one URL.");
+    return;
+  }
+
+  document.getElementById("scrapeStatus").textContent = "Scraping in progress...";
+
+  try {
+    const response = await fetch("/api/scrape", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, links: urls }),
+    });
+
+    const data = await response.json();
+    const linksList = document.getElementById("linksList");
+    linksList.innerHTML = "";
+    data.links.forEach(link => {
+      const li = document.createElement("div");
+      li.innerHTML = `<input type='checkbox' checked disabled> ${link}`;
+      linksList.appendChild(li);
+    });
+
+    document.getElementById("linksSection").style.display = "block";
+    document.getElementById("resultsSection").style.display = "block";
+    document.getElementById("processStatus").textContent = `Scrape completed: ${data.status}`;
+  } catch (err) {
+    document.getElementById("processStatus").textContent = `Error: ${err.message}`;
+  }
+});
+
+document.getElementById("downloadLinksBtn").addEventListener("click", () => {
+  window.location.href = "/downloads/youtube_links.txt";
+});
+
+document.getElementById("downloadDocxBtn").addEventListener("click", () => {
+  window.location.href = "/downloads/youtube_links.docx";
+});
+
 document.getElementById("togglePassword").addEventListener("click", function () {
   const passwordInput = document.getElementById("password");
-  // Toggle the type attribute
   const currentType = passwordInput.getAttribute("type");
   const newType = currentType === "password" ? "text" : "password";
   passwordInput.setAttribute("type", newType);
-  // Toggle the icon (using different emoji for demonstration)
-  this.textContent = newType === "password" ? "👁️" : "🙈";
-});
-
-// Event listener for "Scrape Entire Module" button
-document.getElementById('scrapeModuleBtn').addEventListener('click', async () => {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const url = document.getElementById('url').value.trim();
-  const statusEl = document.getElementById('scrapeStatus');
-  statusEl.textContent = '';
-
-  if (!email || !password || !url) {
-    statusEl.textContent = 'Please enter email, password, and URL.';
-    statusEl.style.color = 'red';
-    return;
-  }
-
-  statusEl.textContent = 'Scraping entire module for YouTube links... (this may take a minute)';
-  statusEl.style.color = 'black';
-
-  try {
-    const response = await fetch('/api/scrape/module', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, moduleUrl: url })
-    });
-    const data = await response.json();
-    if (response.ok && data.success) {
-      const links = data.links;
-      const linksListEl = document.getElementById('linksList');
-      linksListEl.innerHTML = ''; // Clear previous links
-      if (links.length === 0) {
-        linksListEl.innerHTML = '<p>No YouTube videos found in this module.</p>';
-      } else {
-        links.forEach(link => {
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.value = link;
-          checkbox.checked = true;
-          const label = document.createElement('label');
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(' ' + link));
-          linksListEl.appendChild(label);
-        });
-      }
-      document.getElementById('linksSection').style.display = 'block';
-      statusEl.textContent = `Found ${links.length} video link(s).`;
-      statusEl.style.color = 'green';
-    } else {
-      const errMsg = data.error || 'Scrape failed.';
-      statusEl.textContent = 'Error: ' + errMsg;
-      statusEl.style.color = 'red';
-    }
-  } catch (err) {
-    console.error('Request failed', err);
-    statusEl.textContent = 'Error: Could not reach backend.';
-    statusEl.style.color = 'red';
-  }
-});
-
-// Event listener for "Scrape Single Content Page" button
-document.getElementById('scrapeContentBtn').addEventListener('click', async () => {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const url = document.getElementById('url').value.trim();
-  const statusEl = document.getElementById('scrapeStatus');
-  statusEl.textContent = '';
-
-  if (!email || !password || !url) {
-    statusEl.textContent = 'Please enter email, password, and URL.';
-    statusEl.style.color = 'red';
-    return;
-  }
-
-  statusEl.textContent = 'Scraping single content page for YouTube links...';
-  statusEl.style.color = 'black';
-
-  try {
-    const response = await fetch('/api/scrape/content', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, contentUrl: url })
-    });
-    const data = await response.json();
-    if (response.ok && data.success) {
-      const links = data.links;
-      const linksListEl = document.getElementById('linksList');
-      linksListEl.innerHTML = ''; // Clear previous links
-      if (links.length === 0) {
-        linksListEl.innerHTML = '<p>No YouTube videos found on this page.</p>';
-      } else {
-        links.forEach(link => {
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.value = link;
-          checkbox.checked = true;
-          const label = document.createElement('label');
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(' ' + link));
-          linksListEl.appendChild(label);
-        });
-      }
-      document.getElementById('linksSection').style.display = 'block';
-      statusEl.textContent = `Found ${links.length} video link(s).`;
-      statusEl.style.color = 'green';
-    } else {
-      const errMsg = data.error || 'Scrape failed.';
-      statusEl.textContent = 'Error: ' + errMsg;
-      statusEl.style.color = 'red';
-    }
-  } catch (err) {
-    console.error('Request failed', err);
-    statusEl.textContent = 'Error: Could not reach backend.';
-    statusEl.style.color = 'red';
-  }
 });
 
 // Event listener for processing (transcribing & summarizing) selected videos

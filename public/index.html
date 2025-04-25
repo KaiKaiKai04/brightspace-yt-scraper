@@ -26,19 +26,20 @@
         </div>
       </div>      
       <div class="form-group">
-        <label for="url">Course/Module or Content URL:</label>
-        <input type="url" id="url" placeholder="https://your.brightspace.domain/..." />
+        <label for="brightspaceLinks">Brightspace Links (one per line):</label>
+        <textarea id="brightspaceLinks" rows="5" placeholder="https://your.brightspace.domain/page1\nhttps://your.brightspace.domain/page2"></textarea>
       </div>
+      
       <div class="button-group">
-        <button id="scrapeModuleBtn">Scrape Entire Module</button>
-        <button id="scrapeContentBtn">Scrape Single Content Page</button>
+        <button id="scrapeBtn">Scrape All Links</button>
       </div>
       <span class="tooltip">❔
         <span class="tooltiptext">
-          Use "Scrape Entire Module" to traverse all content pages in a module.<br>
-          Use "Scrape Single Content Page" for one specific content page.
+          Paste one or more Brightspace content/module links (one per line).<br>
+          The app will log in and extract YouTube videos from each link.
         </span>
       </span>
+      
       <div id="scrapeStatus" class="status"></div>
     </div>
 
@@ -55,6 +56,7 @@
       </span>
       <div id="processStatus" class="status"></div>
       <p><button id="downloadLinksBtn">Download All Links</button></p>
+      <button id="downloadDocxBtn">Download as DOCX</button>
     </div>
 
     <!-- Section to display results -->
