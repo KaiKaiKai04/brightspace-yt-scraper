@@ -1,9 +1,9 @@
 // public/script.js
 
-document.getElementById("scrapeContentBtn").addEventListener("click", async () => {
+document.getElementById("scrapeBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const urlInput = document.getElementById("url").value.trim();
+  const urlInput = document.getElementById("brightspaceLinks").value.trim();
   const urls = urlInput.split(/\s+/).filter(Boolean);
 
   if (!email || !password || urls.length === 0) {
@@ -25,11 +25,12 @@ document.getElementById("scrapeContentBtn").addEventListener("click", async () =
     const data = await response.json();
     const linksList = document.getElementById("linksList");
     linksList.innerHTML = "";
-    data.links.forEach(link => {
+    data.youtubeLinks.forEach(link => {
       const li = document.createElement("div");
-      li.innerHTML = `<input type='checkbox' checked disabled> ${link}`;
+      li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
       linksList.appendChild(li);
     });
+    
 
     document.getElementById("linksSection").style.display = "block";
     document.getElementById("resultsSection").style.display = "block";
