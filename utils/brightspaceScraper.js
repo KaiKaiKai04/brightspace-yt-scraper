@@ -10,31 +10,33 @@ function normalizeYouTubeUrl(url) {
   try {
     if (!url) return null;
 
+    // Handle protocol-relative links like //www.youtube.com/...
+    if (url.startsWith('//')) url = 'https:' + url;
+
     const parsed = new URL(url);
 
-    // YouTube embed: /embed/VIDEO_ID
+    // Handle standard YouTube embed
     if (parsed.hostname.includes('youtube.com') && parsed.pathname.startsWith('/embed/')) {
       const videoId = parsed.pathname.split('/embed/')[1];
       return `https://www.youtube.com/watch?v=${videoId}`;
     }
 
-    // Short youtu.be link
+    // Handle short links
     if (parsed.hostname.includes('youtu.be')) {
       return `https://www.youtube.com/watch?v=${parsed.pathname.slice(1)}`;
     }
 
-    // Watch link: ?v=VIDEO_ID
-    if (parsed.hostname.includes('youtube.com') && parsed.searchParams.has('v')) {
-      const videoId = parsed.searchParams.get('v');
-      return `https://www.youtube.com/watch?v=${videoId}`;
+    // Handle full watch links
+    if (parsed.hostname.includes('youtube.com') && parsed.searchParams.get('v')) {
+      return `https://www.youtube.com/watch?v=${parsed.searchParams.get('v')}`;
     }
 
-    // Embedly or iframe wrappers
+    // Handle embedly iframe src or link wrapping YouTube URLs
     if (parsed.hostname.includes('cdn.embedly.com')) {
-      const rawUrl = parsed.searchParams.get('url') || parsed.searchParams.get('src');
-      if (rawUrl && rawUrl.includes('youtube.com/watch')) {
-        const embedded = new URL(decodeURIComponent(rawUrl));
-        const vid = embedded.searchParams.get('v');
+      const embeddedUrl = parsed.searchParams.get('url') || parsed.searchParams.get('src');
+      if (embeddedUrl && embeddedUrl.includes('youtube.com/watch')) {
+        const embeddedParsed = new URL(decodeURIComponent(embeddedUrl));
+        const vid = embeddedParsed.searchParams.get('v');
         if (vid) return `https://www.youtube.com/watch?v=${vid}`;
       }
     }
@@ -86,7 +88,7 @@ async function clickReviewContent(page) {
     console.log("🔍 Trying to click 'Review Content' inside shadow DOM...");
 
     // Wait for the <d2l-button> to appear
-    const d2lButton = await page.waitForSelector('d2l-button', { timeout: 10000 });
+    const d2lButton = await page.waitForSelector('d2l-button', { timeout: 5000 });
 
     // Get its shadow root
     const shadowRoot = await d2lButton.evaluateHandle(el => el.shadowRoot);
@@ -176,10 +178,12 @@ async function scrollToBottom(page) {
 }
 
 async function saveLinksAsDocx(links) {
+  const validLinks = links.filter(link => typeof link === 'string' && link.trim().length > 0);
+
   const doc = new Document({
     sections: [
       {
-        children: links.map(link => new Paragraph(new TextRun(link))),
+        children: validLinks.map(link => new Paragraph(new TextRun(link))),
       },
     ],
   });
@@ -190,9 +194,10 @@ async function saveLinksAsDocx(links) {
   console.log(`📄 DOCX saved to: ${outputPath}`);
 }
 
+
 async function loginToBrightspace(page, email, password, url) {
   console.log('🔐 Logging into Brightspace...');
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
   try {
     await page.waitForSelector('#otherTile', { timeout: 3000 });
@@ -205,7 +210,7 @@ async function loginToBrightspace(page, email, password, url) {
     console.log("ℹ️ '#otherTile' not found or auto-redirected. Continuing...");
   }
 
-  await page.waitForSelector('input[type="email"], input#i0116', { timeout: 15000 });
+  await page.waitForSelector('input[type="email"], input#i0116', { timeout: 5000 });
   await page.fill('input[type="email"], input#i0116', email);
   console.log('📧 Email entered');
 
@@ -215,7 +220,7 @@ async function loginToBrightspace(page, email, password, url) {
   ]);
   console.log('➡️ Clicked Next');
 
-  await page.waitForSelector('#i0118', { timeout: 15000 });
+  await page.waitForSelector('#i0118', { timeout: 8000 });
   const passwordInput = page.locator('#i0118');
   await passwordInput.click({ timeout: 5000 });
   await passwordInput.type(password, { delay: 100 });
@@ -228,13 +233,13 @@ async function loginToBrightspace(page, email, password, url) {
   console.log('🔑 Password typed');
 
   await Promise.all([
-    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }),
+    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 7000 }),
     page.locator('input[type="submit"], #idSIButton9').click()
   ]);
   console.log('🔓 Clicked Sign In');
 
   try {
-    await page.waitForSelector('d2l-navigation', { timeout: 15000 });
+    await page.waitForSelector('d2l-navigation', { timeout: 7000 });
     console.log('✅ Brightspace navigation loaded');
   } catch {
     console.log('⏳ No navigation element found, waiting briefly...');
