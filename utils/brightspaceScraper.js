@@ -8,19 +8,43 @@ const router = express.Router();
 
 function normalizeYouTubeUrl(url) {
   try {
+    if (!url) return null;
+
     const parsed = new URL(url);
+
+    // YouTube embed: /embed/VIDEO_ID
     if (parsed.hostname.includes('youtube.com') && parsed.pathname.startsWith('/embed/')) {
       const videoId = parsed.pathname.split('/embed/')[1];
       return `https://www.youtube.com/watch?v=${videoId}`;
     }
+
+    // Short youtu.be link
     if (parsed.hostname.includes('youtu.be')) {
       return `https://www.youtube.com/watch?v=${parsed.pathname.slice(1)}`;
     }
-    return url;
-  } catch (err) {
-    return url;
+
+    // Watch link: ?v=VIDEO_ID
+    if (parsed.hostname.includes('youtube.com') && parsed.searchParams.has('v')) {
+      const videoId = parsed.searchParams.get('v');
+      return `https://www.youtube.com/watch?v=${videoId}`;
+    }
+
+    // Embedly or iframe wrappers
+    if (parsed.hostname.includes('cdn.embedly.com')) {
+      const rawUrl = parsed.searchParams.get('url') || parsed.searchParams.get('src');
+      if (rawUrl && rawUrl.includes('youtube.com/watch')) {
+        const embedded = new URL(decodeURIComponent(rawUrl));
+        const vid = embedded.searchParams.get('v');
+        if (vid) return `https://www.youtube.com/watch?v=${vid}`;
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
   }
 }
+
 
 async function scrapeYouTubeLinksOnPage(pageOrFrame, videoLinks, depth = 0) {
   const indent = '  '.repeat(depth);
