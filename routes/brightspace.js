@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { scrapeMultipleLinks } = require('../utils/brightspaceScraper');
+const { scrapeRiseContent } = require('../utils/riseScraper');
+
 
 router.post('/scrape', async (req, res) => {
   const { email, password, links } = req.body;
@@ -17,5 +19,19 @@ router.post('/scrape', async (req, res) => {
     res.status(500).json({ error: 'Scraping failed' });
   }
 });
+
+router.post('/scrape-rise', async (req, res) => {
+  const { link } = req.body;
+  if (!link) return res.status(400).json({ success: false, message: 'Missing link' });
+
+  try {
+    const result = await scrapeRiseContent(link);
+    res.json(result);
+  } catch (err) {
+    console.error('Scrape Rise failed:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 
 module.exports = router;

@@ -347,6 +347,10 @@ async function findFrameWithSelector(frameOrPage, selector) {
 }
 
 module.exports = {
-  scrapeMultipleLinks
+  scrapeMultipleLinks,
+  normalizeYouTubeUrl,
+  saveLinksAsDocx,
+  scrapeYouTubeLinksOnPage
 };
+
 

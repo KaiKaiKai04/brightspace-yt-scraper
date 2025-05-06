@@ -1,5 +1,3 @@
-// public/script.js
-
 document.getElementById("scrapeBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -16,9 +14,7 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
   try {
     const response = await fetch("/api/scrape", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, links: urls }),
     });
 
@@ -30,13 +26,44 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
       li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
       linksList.appendChild(li);
     });
-    
 
     document.getElementById("linksSection").style.display = "block";
     document.getElementById("resultsSection").style.display = "block";
     document.getElementById("processStatus").textContent = `Scrape completed: ${data.status}`;
   } catch (err) {
     document.getElementById("processStatus").textContent = `Error: ${err.message}`;
+  }
+});
+
+document.getElementById('scrapeRiseBtn').addEventListener('click', async () => {
+  const urlInput = document.getElementById("brightspaceLinks").value.trim();
+  const urls = urlInput.split(/\s+/).filter(Boolean);
+  if (urls.length === 0) return alert('Please paste your Rise course URL.');
+
+  try {
+    const resp = await fetch('/api/scrape-rise', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ link: urls[0] })
+    });
+
+    const { success, links, message } = await resp.json();
+    if (!success) throw new Error(message);
+
+    const linksList = document.getElementById("linksList");
+    linksList.innerHTML = "";
+    links.forEach(link => {
+      const li = document.createElement("div");
+      li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
+      linksList.appendChild(li);
+    });
+
+    document.getElementById('linksSection').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('processStatus').textContent = `Rise scrape completed: ${links.length} links found`;
+  } catch (err) {
+    console.error(err);
+    alert('Rise scrape failed: ' + err.message);
   }
 });
 
@@ -80,7 +107,7 @@ document.getElementById('processBtn').addEventListener('click', async () => {
     if (response.ok && data.success) {
       const results = data.results;
       const resultsListEl = document.getElementById('resultsList');
-      resultsListEl.innerHTML = ''; // Clear previous results
+      resultsListEl.innerHTML = '';
       for (const [videoId, result] of Object.entries(results)) {
         const { transcript, summary } = result;
         const itemDiv = document.createElement('div');
@@ -115,3 +142,4 @@ document.getElementById('processBtn').addEventListener('click', async () => {
     statusEl.style.color = 'red';
   }
 });
+
