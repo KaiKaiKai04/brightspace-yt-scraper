@@ -1,69 +1,72 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brightspace YouTube Links Scraper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Brightspace YouTube Scraper</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Brightspace YouTube Links Scraper</h1>
-    <!-- Form for login and URL input with two scraping options -->
+  <div class="wrapper">
+    <h1>Brightspace YouTube Scraper</h1>
+    <p class="subtitle">Extract YouTube videos from your learning content.</p>
+
     <div class="card">
-      <h2>1. Brightspace Login & Input</h2>
-      <p>Enter your Brightspace credentials and the URL for scraping:</p>
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" placeholder="Brightspace Email" />
-      </div>
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <div class="password-container">
-          <input type="password" id="password" placeholder="Brightspace Password" />
-          <span id="togglePassword" class="toggle-password">👁️</span>
+      <form id="scraperForm">
+        <div class="form-group">
+          <label for="email">Brightspace Email</label>
+          <input type="email" id="email" placeholder="123456A@nyp.edu.sg">
         </div>
-      </div>      
-      <div class="form-group">
-        <label for="brightspaceLinks">Brightspace Links (one per line):</label>
-        <textarea id="brightspaceLinks" rows="5" placeholder="https://your.brightspace.domain/page1\nhttps://your.brightspace.domain/page2"></textarea>
-      </div>
-      
-      <div class="button-group">
-        <button id="scrapeBtn">Scrape All Links</button>
-        <button id="scrapeRiseBtn">Scrape Rise Links</button>
-      </div>
-      <span class="tooltip">❔
-        <span class="tooltiptext">
-          Paste a Brightspace/Rise content/module links (one at a time).<br>
-          The app will log in and extract YouTube videos from each link.
-        </span>
-      </span>
-      
-      <div id="scrapeStatus" class="status"></div>
-    </div>
 
-    <!-- Section to display video links and options for processing -->
-    <div class="card" id="linksSection" style="display:none;">
-      <h2>2. Select Videos to Transcribe</h2>
-      <p>Check the videos you want to transcribe & summarize:</p>
-      <div id="linksList"></div>
-      <button id="processBtn">Transcribe & Summarize Selected</button>
-      <span class="tooltip">❔
-        <span class="tooltiptext">
-          Fetches transcripts (using YouTube captions or AI) and summarizes with GPT-4.
-        </span>
-      </span>
-      <div id="processStatus" class="status"></div>
-      <p><button id="downloadLinksBtn">Download All Links</button></p>
-      <button id="downloadDocxBtn">Download as DOCX</button>
-    </div>
+        <div class="form-group">
+          <label for="password">Brightspace Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" placeholder="••••••••">
+            <button type="button" id="togglePassword" class="password-toggle" aria-label="Toggle password visibility">
+              <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M17.94 17.94A10.9 10.9 0 0112 20c-7 0-11-8-11-8a21.29 21.29 0 014.07-5.91"/>
+                <path d="M1 1l22 22"/>
+              </svg>
+            </button>
+          </div>
+        </div>        
 
-    <!-- Section to display results -->
-    <div class="card" id="resultsSection" style="display:none;">
-      <h2>3. Results</h2>
-      <div id="resultsList"></div>
+        <div class="form-group">
+          <label for="brightspaceLinks">
+            Course Link
+            <span class="tooltip">❔
+              <span class="tooltiptext">Paste either a Brightspace or Rise link. One at a time.</span>
+            </span>
+          </label>
+          <textarea id="brightspaceLinks" placeholder="https://your.link.here/#/"></textarea>
+        </div>
+
+        <div class="button-row">
+          <div class="button-tooltip-wrapper">
+            <button type="button" id="scrapeBtn">Scrape Brightspace Link</button>
+            <span class="tooltip">❔
+              <span class="tooltiptext">
+                Requires login. Scrapes YouTube links from Brightspace modules.
+              </span>
+            </span>
+          </div>
+
+          <div class="button-tooltip-wrapper">
+            <button type="button" id="scrapeRiseBtn">Scrape Rise Link</button>
+            <span class="tooltip">❔
+              <span class="tooltiptext">
+                No login needed. Scrapes YouTube links from Rise content.
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div id="scrapeStatus" class="status"></div>
+      </form>
     </div>
   </div>
 

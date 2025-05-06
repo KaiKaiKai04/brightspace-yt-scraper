@@ -75,11 +75,17 @@ document.getElementById("downloadDocxBtn").addEventListener("click", () => {
   window.location.href = "/downloads/youtube_links.docx";
 });
 
-document.getElementById("togglePassword").addEventListener("click", function () {
-  const passwordInput = document.getElementById("password");
-  const currentType = passwordInput.getAttribute("type");
-  const newType = currentType === "password" ? "text" : "password";
-  passwordInput.setAttribute("type", newType);
+// Toggle password visibility
+const passwordInput = document.getElementById("password");
+const toggleButton = document.getElementById("togglePassword");
+const eyeOpen = document.getElementById("eyeOpen");
+const eyeClosed = document.getElementById("eyeClosed");
+
+toggleButton.addEventListener("click", () => {
+  const isMasked = passwordInput.type === "password";
+  passwordInput.type = isMasked ? "text" : "password";
+  eyeOpen.style.display = isMasked ? "none" : "inline";
+  eyeClosed.style.display = isMasked ? "inline" : "none";
 });
 
 // Event listener for processing (transcribing & summarizing) selected videos
