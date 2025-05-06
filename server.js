@@ -1,4 +1,6 @@
 // server.js
+// this file sets up the Express server and serves the frontend files
+
 require('dotenv').config();           // Load environment variables from .env
 
 const express = require('express');

@@ -1,3 +1,7 @@
+// /routes/brightspace.js  //
+// This file contains the routes for scraping Brightspace and Rise content
+// and serves as the API endpoint for the frontend to interact with.
+
 const express = require('express');
 const router = express.Router();
 const { scrapeMultipleLinks } = require('../utils/brightspaceScraper');

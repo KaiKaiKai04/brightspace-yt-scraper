@@ -1,3 +1,7 @@
+// utils/riseScraper.js
+// This file contains the scraper for Rise content on Brightspace
+// and is used by the API routes to perform the scraping tasks.
+
 const playwright = require('playwright');
 const path = require('path');
 const fs = require('fs');

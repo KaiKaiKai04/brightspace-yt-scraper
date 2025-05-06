@@ -1,4 +1,7 @@
 // utils/brightspaceScraper.js
+// this file contains the main scraping logic for Brightspace and YouTube links
+// and is used by the API routes to perform the scraping tasks.
+
 const playwright = require('playwright');
 const fs = require('fs');
 const path = require('path');
