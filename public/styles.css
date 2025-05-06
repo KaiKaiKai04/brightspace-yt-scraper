@@ -1,3 +1,6 @@
+/* public/styles.css
+/* This file contains the CSS styles for the HTML pages */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -87,8 +90,14 @@ textarea {
 
 .password-wrapper input {
   width: 100%;
-  padding-right: 44px; /* prevents text from being under icon */
-  box-sizing: border-box;
+  padding: 12px 14px;
+  padding-right: 40px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  background-color: #fdfdfd;
+  height: 44px; 
+  line-height: 1.2;
 }
 
 .password-toggle {
@@ -97,18 +106,27 @@ textarea {
   background: none;
   border: none;
   cursor: pointer;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
-  padding: 4px;
+  font-size: 1.1rem;
+  color: #666;
+  border-radius: 6px; 
 }
 
 .password-toggle:focus {
   outline: none;
+  box-shadow: none; 
 }
 
-.password-toggle svg {
+.password-toggle:hover,
+.password-toggle:active {
+  background: none;  
+  box-shadow: none;
+}
+
+.password-toggle i {
   pointer-events: none;
 }
 
@@ -135,6 +153,10 @@ button {
 
 button:hover {
   background: #005fd2;
+}
+
+button::-moz-focus-inner {
+  border: 0;
 }
 
 /* Tooltip */

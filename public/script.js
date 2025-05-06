@@ -1,3 +1,6 @@
+// public/script.js
+// This script handles the frontend interactions for the Brightspace scraper
+
 document.getElementById("scrapeBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -73,19 +76,6 @@ document.getElementById("downloadLinksBtn").addEventListener("click", () => {
 
 document.getElementById("downloadDocxBtn").addEventListener("click", () => {
   window.location.href = "/downloads/youtube_links.docx";
-});
-
-// Toggle password visibility
-const passwordInput = document.getElementById("password");
-const toggleButton = document.getElementById("togglePassword");
-const eyeOpen = document.getElementById("eyeOpen");
-const eyeClosed = document.getElementById("eyeClosed");
-
-toggleButton.addEventListener("click", () => {
-  const isMasked = passwordInput.type === "password";
-  passwordInput.type = isMasked ? "text" : "password";
-  eyeOpen.style.display = isMasked ? "none" : "inline";
-  eyeClosed.style.display = isMasked ? "inline" : "none";
 });
 
 // Event listener for processing (transcribing & summarizing) selected videos
