@@ -115,10 +115,13 @@ textarea {
   border-radius: 6px; 
 }
 
-.password-toggle:focus {
+body[data-theme="dark"] .password-toggle:focus {
   outline: none;
-  box-shadow: none; 
+  box-shadow: none;
+  border: none;
+  background: none;
 }
+
 
 .password-toggle:hover,
 .password-toggle:active {
@@ -198,4 +201,70 @@ button::-moz-focus-inner {
   margin-top: 10px;
   color: #444;
   font-style: italic;
+}
+
+
+/* Dark mode overrides */
+body[data-theme="dark"] {
+  background: #1e1e1e;
+  color: #f0f0f0;
+}
+
+body[data-theme="dark"] .card {
+  background: #2c2c2c;
+  color: #f0f0f0;
+}
+
+body[data-theme="dark"] .subtitle {
+  color: #aaa;
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] textarea {
+  background-color: #333;
+  border: 1px solid #555;
+  color: #eee;
+}
+
+body[data-theme="dark"] input::placeholder,
+body[data-theme="dark"] textarea::placeholder {
+  color: #aaa;
+}
+
+body[data-theme="dark"] .tooltiptext {
+  background-color: #444;
+  color: #fff;
+}
+
+body[data-theme="dark"] button {
+  background: #007aff;
+  color: white;
+}
+
+body[data-theme="dark"] button:hover {
+  background: #005fd2;
+}
+
+body[data-theme="dark"] #hamburgerMenu {
+  background: #2c2c2c;
+  color: #f0f0f0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+/* Hamburger icon visibility fix */
+#hamburgerBtn {
+  color: #333;
+}
+
+body[data-theme="dark"] #hamburgerBtn {
+  color: #f0f0f0;
+}
+
+.password-toggle:focus,
+.password-toggle:focus-visible,
+.password-toggle:focus-within,
+.password-toggle:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
 }

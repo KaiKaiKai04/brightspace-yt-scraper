@@ -10,15 +10,43 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<body>
+<body data-theme="light">
+  <!-- Navigation bar with hamburger -->
+  <nav style="padding: 10px 20px; background: var(--card); display: flex; justify-content: space-between; align-items: center;">
+    <div style="position: relative;">
+      <button id="hamburgerBtn" style="background: none; border: none; font-size: 1.4rem; cursor: pointer;">☰</button>
+  
+      <div id="hamburgerMenu" style="display: none; position: absolute; top: 40px; left: 0; background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 180px; z-index: 1000;">
+        <div style="font-weight: bold; margin-bottom: 10px;">Preferences</div>
+  
+        <div style="margin-bottom: 12px;">
+          <label for="themeSelector" style="font-size: 0.9rem;">Theme:</label><br>
+          <select id="themeSelector" style="width: 100%; margin-top: 4px; padding: 6px 10px; border-radius: 6px;">
+            <option value="light">Light Mode</option>
+            <option value="dark">Dark Mode</option>
+          </select>
+        </div>
+  
+        <div>
+          <label for="languageSelector" style="font-size: 0.9rem;">Language:</label><br>
+          <select id="languageSelector" style="width: 100%; margin-top: 4px; padding: 6px 10px; border-radius: 6px;">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+
   <div class="wrapper">
-    <h1>Brightspace YouTube Scraper</h1>
-    <p class="subtitle">Extract YouTube videos from your learning content.</p>
+    <h1 data-i18n="title">Brightspace YouTube Scraper</h1>
+    <p class="subtitle" data-i18n="subtitle">Extract YouTube videos from your learning content.</p>
 
     <div class="card">
       <form id="scraperForm">
         <div class="form-group">
-          <label for="email">Brightspace Email:</label>
+          <label for="email" data-i18n="label.email">Brightspace Email:</label>
           <input type="email" id="email" placeholder="123456A@nyp.edu.sg">
         </div>
 
@@ -76,10 +104,10 @@
                             
 
         <div class="form-group">
-          <label for="brightspaceLinks">
+          <label for="brightspaceLinks" data-i18n="label.link">
             Course Link
             <span class="tooltip">❔
-              <span class="tooltiptext">Paste either a Brightspace or Rise link. One at a time.</span>
+              <span class="tooltiptext" data-i18n="tooltip.link">Paste either a Brightspace or Rise link. One at a time.</span>
             </span>
           </label>
           <textarea id="brightspaceLinks" placeholder="https://your.link.here/#/"></textarea>
@@ -87,20 +115,16 @@
 
         <div class="button-row">
           <div class="button-tooltip-wrapper">
-            <button type="button" id="scrapeBtn">Scrape Brightspace Link</button>
+            <button type="button" id="scrapeBtn" data-i18n="button.scrapeBrightspace">Scrape Brightspace Link</button>
             <span class="tooltip">❔
-              <span class="tooltiptext">
-                Requires login credentials. Scrapes YouTube links from Brightspace modules.
-              </span>
+              <span class="tooltiptext" data-i18n="tooltip.brightspace">Requires login credentials. Scrapes YouTube links from Brightspace modules.</span>
             </span>
           </div>
 
           <div class="button-tooltip-wrapper">
-            <button type="button" id="scrapeRiseBtn">Scrape Rise Link</button>
+            <button type="button" id="scrapeRiseBtn" data-i18n="button.scrapeRise">Scrape Rise Link</button>
             <span class="tooltip">❔
-              <span class="tooltiptext">
-                No login needed. Scrapes YouTube links from Rise content.
-              </span>
+              <span class="tooltiptext" data-i18n="tooltip.rise">No login needed. Scrapes YouTube links from Rise content.</span>
             </span>
           </div>
         </div>
@@ -109,6 +133,63 @@
       </form>
     </div>
   </div>
+
+  <script>
+    // Theme toggle
+    document.getElementById("themeSelector").addEventListener("change", (e) => {
+      document.body.setAttribute("data-theme", e.target.value);
+    });
+
+    // Language toggle
+    const translations = {
+      en: {
+        title: "Brightspace YouTube Scraper",
+        subtitle: "Extract YouTube videos from your learning content.",
+        "label.email": "Brightspace Email:",
+        "label.password": "Password",
+        "label.link": "Course Link",
+        "tooltip.link": "Paste either a Brightspace or Rise link. One at a time.",
+        "button.scrapeBrightspace": "Scrape Brightspace Link",
+        "tooltip.brightspace": "Requires login credentials. Scrapes YouTube links from Brightspace modules.",
+        "button.scrapeRise": "Scrape Rise Link",
+        "tooltip.rise": "No login needed. Scrapes YouTube links from Rise content.",
+      },
+      zh: {
+        title: "Brightspace 视频提取工具",
+        subtitle: "从学习内容中提取 YouTube 视频。",
+        "label.email": "Brightspace 邮箱：",
+        "label.password": "密码",
+        "label.link": "课程链接",
+        "tooltip.link": "粘贴一个 Brightspace 或 Rise 链接（一次一个）。",
+        "button.scrapeBrightspace": "提取 Brightspace 视频",
+        "tooltip.brightspace": "需要登录凭证。提取 Brightspace 模块中的 YouTube 视频。",
+        "button.scrapeRise": "提取 Rise 视频",
+        "tooltip.rise": "无需登录。提取 Rise 内容中的 YouTube 视频。",
+      }
+    };
+
+    document.getElementById("languageSelector").addEventListener("change", (e) => {
+      const lang = e.target.value;
+      const strings = translations[lang];
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (strings[key]) el.textContent = strings[key];
+      });
+    });
+  </script>
+
+<script>
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+  const hamburgerMenu = document.getElementById("hamburgerMenu");
+
+  document.addEventListener("click", (e) => {
+    if (hamburgerBtn.contains(e.target)) {
+      hamburgerMenu.style.display = hamburgerMenu.style.display === "none" ? "block" : "none";
+    } else if (!hamburgerMenu.contains(e.target)) {
+      hamburgerMenu.style.display = "none";
+    }
+  });
+</script>
 
   <script src="/script.js"></script>
 </body>
