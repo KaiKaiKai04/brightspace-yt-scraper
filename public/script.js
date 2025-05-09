@@ -24,18 +24,25 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
     const data = await response.json();
     const linksList = document.getElementById("linksList");
     linksList.innerHTML = "";
-    (links || [])
-      .filter(link => link && link.trim())
-      .forEach(link => {
-        const li = document.createElement("div");
-        li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
-        linksList.appendChild(li);
-      });
+
+    // Filter out empty or whitespace-only links and null values
+    if (!data.youtubeLinks || data.youtubeLinks.length === 0) {
+      document.getElementById("scrapeStatus").textContent = "No YouTube links found.";
+      return;
+    }
+    const validLinks = (data.youtubeLinks || []).filter(link => link && link.trim());
+
+    validLinks.forEach(link => {
+      const li = document.createElement("div");
+      li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
+      linksList.appendChild(li);
+    });
 
 
     document.getElementById("linksSection").style.display = "block";
     document.getElementById("resultsSection").style.display = "block";
     document.getElementById("processStatus").textContent = `Scrape completed: ${data.status}`;
+    document.getElementById("scrapeStatus").textContent = `Scrape completed: ${validLinks.length} links found`;
   } catch (err) {
     document.getElementById("processStatus").textContent = `Error: ${err.message}`;
   }
@@ -59,17 +66,22 @@ document.getElementById('scrapeRiseBtn').addEventListener('click', async () => {
     const linksList = document.getElementById("linksList");
     linksList.innerHTML = "";
 
-    (links || [])
-      .filter(link => link && link.trim())
-      .forEach(link => {
-        const li = document.createElement("div");
-        li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
-        linksList.appendChild(li);
-      });
+    // Filter out empty or whitespace-only links and null values
+    if (!data.youtubeLinks || data.youtubeLinks.length === 0) {
+      document.getElementById("scrapeStatus").textContent = "No YouTube links found.";
+      return;
+    }
+    const validLinks = (links || []).filter(link => link && link.trim());
+
+    validLinks.forEach(link => {
+      const li = document.createElement("div");
+      li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
+      linksList.appendChild(li);
+    });
 
     document.getElementById('linksSection').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'block';
-    document.getElementById('processStatus').textContent = `Rise scrape completed: ${links.length} links found`;
+    document.getElementById('processStatus').textContent = `Rise scrape completed: ${validLinks.length} links found`;
   } catch (err) {
     console.error(err);
     alert('Rise scrape failed: ' + err.message);
@@ -85,6 +97,7 @@ document.getElementById("downloadDocxBtn").addEventListener("click", () => {
 });
 
 // Event listener for processing (transcribing & summarizing) selected videos
+// currently not in use, but can be used for future functionality
 document.getElementById('processBtn').addEventListener('click', async () => {
   const statusEl = document.getElementById('processStatus');
   statusEl.textContent = '';
