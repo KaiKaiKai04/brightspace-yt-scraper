@@ -26,7 +26,7 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
     linksList.innerHTML = "";
 
     // Filter out empty or whitespace-only links and null values
-    if (!data.youtubeLinks || data.youtubeLinks.length === 0) {
+    if (!links || links.length === 0) {
       document.getElementById("scrapeStatus").textContent = "No YouTube links found.";
       return;
     }
@@ -67,7 +67,7 @@ document.getElementById('scrapeRiseBtn').addEventListener('click', async () => {
     linksList.innerHTML = "";
 
     // Filter out empty or whitespace-only links and null values
-    if (!data.youtubeLinks || data.youtubeLinks.length === 0) {
+    if (!links || links.length === 0) {
       document.getElementById("scrapeStatus").textContent = "No YouTube links found.";
       return;
     }
