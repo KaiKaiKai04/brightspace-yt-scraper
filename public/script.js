@@ -24,11 +24,14 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
     const data = await response.json();
     const linksList = document.getElementById("linksList");
     linksList.innerHTML = "";
-    data.youtubeLinks.forEach(link => {
-      const li = document.createElement("div");
-      li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
-      linksList.appendChild(li);
-    });
+    (links || [])
+      .filter(link => link && link.trim())
+      .forEach(link => {
+        const li = document.createElement("div");
+        li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
+        linksList.appendChild(li);
+      });
+
 
     document.getElementById("linksSection").style.display = "block";
     document.getElementById("resultsSection").style.display = "block";
@@ -55,11 +58,14 @@ document.getElementById('scrapeRiseBtn').addEventListener('click', async () => {
 
     const linksList = document.getElementById("linksList");
     linksList.innerHTML = "";
-    links.forEach(link => {
-      const li = document.createElement("div");
-      li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
-      linksList.appendChild(li);
-    });
+
+    (links || [])
+      .filter(link => link && link.trim())
+      .forEach(link => {
+        const li = document.createElement("div");
+        li.innerHTML = `<label><input type='checkbox' value="${link}" checked> ${link}</label>`;
+        linksList.appendChild(li);
+      });
 
     document.getElementById('linksSection').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'block';

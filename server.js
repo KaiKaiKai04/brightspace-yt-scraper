@@ -20,6 +20,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Mount the Brightspace API routes under /api
 app.use('/api', brightspaceRoutes);
 
+// Serve output files for download
+const outputDir = path.join(__dirname, 'output');
+
+// Force download for TXT
+app.get('/downloads/youtube_links.txt', (req, res) => {
+  const filePath = path.join(outputDir, 'youtube_links.txt');
+  res.download(filePath, 'youtube_links.txt');
+});
+
+// Force download for DOCX
+app.get('/downloads/youtube_links.docx', (req, res) => {
+  const filePath = path.join(outputDir, 'youtube_links.docx');
+  res.download(filePath, 'youtube_links.docx');
+});
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

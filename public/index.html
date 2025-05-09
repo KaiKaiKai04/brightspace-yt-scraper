@@ -130,6 +130,19 @@
         </div>
 
         <div id="scrapeStatus" class="status"></div>
+        <div id="linksSection" style="display: none; margin-top: 20px;">
+          <h3>Scraped YouTube Links:</h3>
+          <div id="linksList"></div>
+          <div class="button-row" style="margin-top: 12px;">
+            <button id="downloadLinksBtn" type="button">Download TXT</button>
+            <button id="downloadDocxBtn" type="button">Download DOCX</button>
+          </div>
+        </div>
+      
+        <div id="resultsSection" style="display: none;">
+          <p id="processStatus" style="margin-top: 20px;"></p>
+          <div id="resultsList"></div>
+        </div> 
       </form>
     </div>
   </div>
@@ -176,7 +189,7 @@
         if (strings[key]) el.textContent = strings[key];
       });
     });
-  </script>
+  </script>      
 
 <script>
   const hamburgerBtn = document.getElementById("hamburgerBtn");

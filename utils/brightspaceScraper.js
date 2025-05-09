@@ -183,12 +183,15 @@ async function scrollToBottom(page) {
 async function saveLinksAsDocx(links) {
   const validLinks = links.filter(link => typeof link === 'string' && link.trim().length > 0);
 
+  const paragraphs = validLinks.map(link =>
+    new Paragraph({
+      children: [new TextRun({ text: link, break: 1 })],
+      spacing: { after: 200 }
+    })
+  );
+
   const doc = new Document({
-    sections: [
-      {
-        children: validLinks.map(link => new Paragraph(new TextRun(link))),
-      },
-    ],
+    sections: [{ children: paragraphs }]
   });
 
   const buffer = await Packer.toBuffer(doc);
@@ -333,7 +336,8 @@ async function scrapeMultipleLinks(email, password, links) {
   fs.writeFileSync(textPath, Array.from(videoLinks).join('\n'));
   console.log(`📁 TXT saved to: ${textPath}`);
 
-  await saveLinksAsDocx(Array.from(videoLinks));
+  await saveLinksAsDocx(Array.from(videoLinks).filter(link => link && link.trim()));
+  console.log(`📁 DOCX saved to: ${path.join(outputDir, 'youtube_links.docx')}`);
   return { links: Array.from(videoLinks), status };
 }
 

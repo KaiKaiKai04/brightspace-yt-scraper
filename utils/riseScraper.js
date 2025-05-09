@@ -113,7 +113,7 @@ async function scrapeRiseContent(link) {
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
   const textPath = path.join(outputDir, 'youtube_links.txt');
   fs.writeFileSync(textPath, linksArr.join('\n'));
-  await saveLinksAsDocx(linksArr);
+  await saveLinksAsDocx(Array.from(videoLinks).filter(link => link && link.trim()));
 
   console.log(`📁 TXT saved to: ${textPath}`);
   console.log(`📄 DOCX saved to: ${path.join(outputDir, 'youtube_links.docx')}`);
