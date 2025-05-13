@@ -54,7 +54,7 @@ brightspace-yt-scraper/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/brightspace-yt-scraper.git
+git clone https://github.com/KaiKaiKai04/brightspace-yt-scraper.git
 cd brightspace-yt-scraper
 ```
 
