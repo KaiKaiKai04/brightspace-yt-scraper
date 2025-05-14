@@ -100,6 +100,7 @@ Server will run at [http://localhost:3000](http://localhost:3000)
 * Ensure your Brightspace module includes embedded YouTube content.
 * Only public Rise links are supported (those that don't require login).
 * Run in headful mode during development for debugging visibility.
+* Only able to process material without completing mandatory questions answering and app game to proceed
 
 ---
 
