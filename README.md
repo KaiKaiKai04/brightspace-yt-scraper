@@ -40,7 +40,7 @@ brightspace-yt-scraper/
 ├── utils/
 │   ├── brightspaceScraper.js
 │   └── riseScraper.js
-├── downloads/
+├── output/
 │   ├── youtube_links.txt
 │   └── youtube_links.docx
 ├── server.js
